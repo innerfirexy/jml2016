@@ -1,11 +1,11 @@
-#!/usr/local/bin/python3
+#!/usr/local/bin/python
 # Train a ngram language model on a certain corpora, and compute the per-word entropy for
 # each sentence in Switchboard
 # Yang Xu
 # 1/21/2016
 
 import nltk
-from nltk.model.ngram import NgramModel
+from nltk_legacy.ngram import NgramModel
 from nltk.probability import LidstoneProbDist
 
 # db connect
@@ -19,3 +19,5 @@ def db_conn(db_name):
     cur = conn.cursor()
 
 #
+if __name__ == '__main__':
+    print 'test'
