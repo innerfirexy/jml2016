@@ -18,6 +18,10 @@ def db_conn(db_name):
                     db = "swbd")
     cur = conn.cursor()
 
-#
+# read sentences from swbd db
+def fname(arg):
+    pass
+
+# main
 if __name__ == '__main__':
     print 'test'
