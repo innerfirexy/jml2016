@@ -53,10 +53,16 @@ pepBndIdx.bnc.between = setdiff(pepBndIdx.bnc$rowIndex, pepBndIdx.bnc.within)
 # find the byPepLeader column
 setkey(dt.bnc, convID, pepID)
 pepLeader.bnc = dt.bnc[, {
-    idx = which(wordNum > 10)
-    if (length(idx) > 0) {
-        idx = idx[1]
-        leader = speaker[idx]
+    if (.I[1] %in% pepBndIdx.bnc.within) {
+        leader = speaker[1]
+    } else if (.I[1] %in% pepBndIdx.bnc.between) {
+        idx = which(wordNum > 5)
+        if (length(idx) > 0) {
+            idx = idx[1]
+            leader = speaker[idx]
+        } else {
+            leader = ifelse(runif(1, 0, 1) > 0.5, 'A', 'B')
+        }
     } else {
         leader = ifelse(runif(1, 0, 1) > 0.5, 'A', 'B')
     }
@@ -70,7 +76,7 @@ dt.bnc = dt.bnc[pepLeader.bnc]
 dt.bnc[, byPepLeader := (pepLeader == speaker)]
 
 # plot
-p.bnc = ggplot(dt.bnc, aes(x = inPepID, y = wordNum)) +
+p.bnc = ggplot(dt.bnc, aes(x = inPepID, y = ent)) +
     stat_summary(fun.y = mean, geom = 'line', aes(lty = byPepLeader)) +
     stat_summary(fun.data = mean_cl_normal, geom = 'ribbon', aes(fill = byPepLeader), alpha = .5)
 plot(p.bnc)
@@ -106,12 +112,28 @@ swbd.pseudo = dt.swbd[, {
 
 dt.swbd = cbind(dt.swbd, swbd.pseudo[, .(pepID, inPepID)])
 
+pepBndIdx.swbd = dt.swbd[, .(rowIndex = .I[which(inPepID == 1 & pepID > 1)])]
+pepBndIdx.swbd.within = c()
+for (i in 1:nrow(pepBndIdx.swbd)) {
+    idx = pepBndIdx.swbd$rowIndex[i]
+    if (dt.swbd[idx, turnID] == dt.swbd[idx-1, turnID]) {
+        pepBndIdx.swbd.within = c(pepBndIdx.swbd.within, idx)
+    }
+}
+pepBndIdx.swbd.between = setdiff(pepBndIdx.swbd$rowIndex, pepBndIdx.swbd.within)
+
 setkey(dt.swbd, convID, pepID)
 pepLeader.swbd = dt.swbd[, {
-    idx = which(wordNum > 5)
-    if (length(idx) > 0) {
-        idx = idx[1]
-        leader = speaker[idx]
+    if (.I[1] %in% pepBndIdx.swbd.within) {
+        leader = speaker[1]
+    } else if (.I[1] %in% pepBndIdx.swbd.between) {
+        idx = which(wordNum > 5)
+        if (length(idx) > 0) {
+            idx = idx[1]
+            leader = speaker[idx]
+        } else {
+            leader = ifelse(runif(1, 0, 1) > 0.5, 'A', 'B')
+        }
     } else {
         leader = ifelse(runif(1, 0, 1) > 0.5, 'A', 'B')
     }
