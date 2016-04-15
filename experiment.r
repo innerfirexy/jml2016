@@ -79,7 +79,9 @@ dt.bnc[, byPepLeader := (pepLeader == speaker)]
 p.bnc = ggplot(dt.bnc, aes(x = inPepID, y = ent)) +
     stat_summary(fun.y = mean, geom = 'line', aes(lty = byPepLeader)) +
     stat_summary(fun.data = mean_cl_normal, geom = 'ribbon', aes(fill = byPepLeader), alpha = .5)
+pdf('pep.bnc.pdf')
 plot(p.bnc)
+dev.off()
 
 
 
@@ -146,4 +148,6 @@ dt.swbd[, byPepLeader := (pepLeader == speaker)]
 p.swbd = ggplot(dt.swbd, aes(x = inPepID, y = ent)) +
     stat_summary(fun.y = mean, geom = 'line', aes(lty = byPepLeader)) +
     stat_summary(fun.data = mean_cl_normal, geom = 'ribbon', aes(fill = byPepLeader), alpha = .5)
+pdf('pep.swbd.pdf')
 plot(p.swbd)
+dev.off()
