@@ -11,6 +11,9 @@ library(lmerTest)
 df.bnc = readRDS('bnc_df_c.rds')
 dt.bnc = data.table(df.bnc)
 
+df.swbd = readRDS('swbd_df_c.rds')
+dt.swbd = data.table(df.swbd)
+
 
 # ent ~ globalID
 summary(lmer(ent ~ globalID + (1|convID), dt.bnc)) # *** ~
@@ -19,3 +22,11 @@ summary(lmer(ent ~ globalID + (1|convID), dt.bnc)) # *** ~
 # get per-word entropy
 dt.bnc[, ent_per := ent / wordNum]
 summary(lmer(ent_per ~ globalID + (1|convID), dt.bnc)) # ***
+
+
+# distr of ent
+plot(density(dt.bnc$ent))
+plot(density(dt.swbd$ent))
+
+qqnorm(log(dt.bnc$ent))
+qqnorm(log(dt.swbd$ent))
