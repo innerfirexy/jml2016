@@ -55,10 +55,28 @@ def proc_BNC():
 
     # add episodeId and inEpisodeId columns
     query = 'alter table entropy_DEM_full \
-        add episodeId int, add inEpisodeId int'
+        add episodeId int, add inEpisodeId int, add convId int after divIndex'
     cur.execute(query)
 
-    pass
+    # select the distinct `convID` from entropy_DEM100, and update it to entropy_DEM_full
+    query = 'select distinct xmlID, divIndex, convID from entropy_DEM100'
+    cur.execute(query)
+    data = cur.fetchall()
+    for d in data:
+        (xml_id, div_idx, conv_id) = d
+        query = 'update entropy_DEM_full set convId = %s where xmlId = %s and divIndex = %s'
+        cur.execute(query, (conv_id, xml_id, div_idx))
+    conn.commit()
+
+
+
+# carry out the shuffle experiment on BNC
+def shuffle_BNC():
+    conn = db_conn('bnc')
+    cur = conn.cursor()
+
+    query = 'select strLower from entropy_DEM_full'
+
 
 
 # main
