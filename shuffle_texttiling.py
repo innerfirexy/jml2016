@@ -107,6 +107,17 @@ def shuffle_BNC():
         sys.stdout.flush()
     conn.commit()
 
+    # add old ent column from entropy_DEM100 table to entropy_DEM_full_shuffle table
+    # first add the column, and then a inner join query
+    query = 'alter table entropy_DEM_full_shuffle add ent_old float after inEpisodeId'
+    cur.execute(query)
+    query = 'update entropy_DEM_full_shuffle t1 inner join entropy_DEM100 t2 \
+        on t1.convId = t2.convID and t1.originalGlobalId = t2.globalID \
+        set t1.ent_old = t2.ent'
+    cur.execute(query)
+
+
+
 # conduct texttiling for the shuffled sentences in entropy_DEM_full_shuffle table
 def texttiling_BNC():
     conn = db_conn('bnc')
