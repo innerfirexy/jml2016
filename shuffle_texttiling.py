@@ -126,7 +126,7 @@ def texttiling_BNC():
             segmented = tt.tokenize(text)
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            if str(exc_obj) == 'Input vector needs to be bigger than window size.' or
+            if str(exc_obj) == 'Input vector needs to be bigger than window size.' or \
                 str(exc_obj) == 'No paragraph breaks were found(text too short perhaps?)': # it means the conversation is too short
                 pass
             else:
