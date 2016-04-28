@@ -119,7 +119,7 @@ def shuffle_BNC():
 
 
 # conduct texttiling for the shuffled sentences in entropy_DEM_full_shuffle table
-def texttiling_BNC():
+def texttiling_BNC_shuffle():
     conn = db_conn('bnc')
     cur = conn.cursor()
     # select unique convId
@@ -160,7 +160,47 @@ def texttiling_BNC():
     # commit
     conn.commit()
 
+# carry out texttiling on entropy_DEM_full table
+def texttiling_BNC():
+    conn = db_conn('bnc')
+    cur = conn.cursor()
+    # select unique convId
+    query = 'select distinct(convId) from entropy_DEM_full'
+    cur.execute(query)
+    conv_ids = [t[0] for t in cur.fetchall()]
 
+    # for each convId, do texttiling, and update the episodeId and inEpisodeId columns
+    tt = TextTilingTokenizer()
+    for i, cid in enumerate(conv_ids):
+        query = 'select tokens from entropy_DEM_full where convId = %s'
+        cur.execute(query, [cid])
+        text = '\n\n\n\t'.join([t[0] for t in cur.fetchall()])
+        try:
+            segmented = tt.tokenize(text)
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            if str(exc_obj) == 'Input vector needs to be bigger than window size.' or \
+                str(exc_obj) == 'No paragraph breaks were found(text too short perhaps?)': # it means the conversation is too short
+                pass
+            else:
+                raise
+        else:
+            global_id = 1
+            for j, seg in enumerate(segmented):
+                epi_id = j + 1
+                sents = [s for s in seg.split('\n\n\n\t') if s != '']
+                for k, s in enumerate(sents):
+                    in_epi_id = k + 1
+                    # update
+                    query = 'update entropy_DEM_full set episodeId = %s, inEpisodeId = %s \
+                        where convId = %s and globalId = %s'
+                    cur.execute(query, (epi_id, in_epi_id, cid, global_id))
+                    global_id += 1
+            # print progress
+            sys.stdout.write('\r%s/%s updated' % (i+1, len(conv_ids)))
+            sys.stdout.flush()
+    # commit
+    conn.commit()
 
 
 # main
