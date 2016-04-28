@@ -203,6 +203,48 @@ def texttiling_BNC():
     conn.commit()
 
 
+# shuffle Switchboard
+def shuffle_SWBD():
+    conn = db_conn('swbd')
+    cur = conn.cursor()
+    # create the table to store the shuffled sentences,
+    query = 'create table if not exists entropy_shuffle \
+        (convId int, originalGlobalId int, sentenceId int, tokens longtext, \
+        episodeId int, inEpisodeId int, ent_old float, primary key(convId, sentenceId))'
+    cur.execute(query)
+
+    # select all convId from the original entropy table
+    query = 'select distinct(convID) from entropy'
+    cur.execute(query)
+    conv_ids = [t[0] for t in cur.fetchall()]
+
+    # for each convId, shuffle the selected (globalID, rawWord) sequence,
+    # and insert the shuffled sequence to entropy_shuffle table
+    for i, cid in enumerate(conv_ids):
+        query = 'select globalID, rawWord from entropy where convId = %s'
+        cur.execute(query, [cid])
+        sequence = [(t[0], t[1]) for t in cur.fetchall()]
+        random.shuffle(sequence)
+        # insert
+        for j, item in enumerate(sequence):
+            (original_gid, sent) = item
+            query = 'insert into entropy_shuffle values(%s, %s, %s, %s, %s, %s, %s)'
+            cur.execute(query, (cid, original_gid, j+1, sent, None, None, None))
+        # print progress
+        sys.stdout.write('\r{}/{} convId shuffled.'.format(i+1, len(conv_ids)))
+        sys.stdout.flush()
+    conn.commit()
+
+    # copy the ent column in entropy to the ent_old column in entropy_shuffle
+    query = 'update entropy_shuffle t1 inner join entropy t2 \
+        on t1.convId = t2.convID and t1.originalGlobalId = t2.globalID \
+        set t1.ent_old = t2.ent'
+    cur.execute(query)
+
+#
+
+
 # main
 if __name__ == '__main__':
-    texttiling_BNC()
+    # texttiling_BNC()
+    shuffle_SWBD()
