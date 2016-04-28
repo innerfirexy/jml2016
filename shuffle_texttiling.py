@@ -172,7 +172,7 @@ def texttiling_BNC():
     # for each convId, do texttiling, and update the episodeId and inEpisodeId columns
     tt = TextTilingTokenizer()
     for i, cid in enumerate(conv_ids):
-        query = 'select tokens from entropy_DEM_full where convId = %s'
+        query = 'select strLower from entropy_DEM_full where convId = %s'
         cur.execute(query, [cid])
         text = '\n\n\n\t'.join([t[0] for t in cur.fetchall()])
         try:
