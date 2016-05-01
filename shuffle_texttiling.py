@@ -115,6 +115,7 @@ def shuffle_BNC():
         on t1.convId = t2.convID and t1.originalGlobalId = t2.globalID \
         set t1.ent_old = t2.ent'
     cur.execute(query)
+    conn.commit()
 
 
 
@@ -240,6 +241,7 @@ def shuffle_SWBD():
         on t1.convId = t2.convID and t1.originalGlobalId = t2.globalID \
         set t1.ent_old = t2.ent'
     cur.execute(query)
+    conn.commit()
 
 #
 
