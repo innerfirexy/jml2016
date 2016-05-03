@@ -61,7 +61,9 @@ def get_train_sents(data, train_ids, sent_id):
     """
     sents = []
     for cid in train_ids:
-        sent = data[cid][sent_id]
+        sent = []
+        if sent_id in data[cid]:
+            sent = data[cid][sent_id]
         if len(sent) > 0:
             sents.append(sent)
     return sents
