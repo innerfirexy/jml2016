@@ -6,6 +6,7 @@ from nltk_legacy import ngram
 import MySQLdb
 import sys
 import pickle
+import random
 
 # get db connection
 def db_conn(db_name):
@@ -51,7 +52,42 @@ def read_data_disk(datafilename):
     data = pickle.load(open(datafilename, 'rb'))
     return data
 
-#
+# get train sentences from data
+def get_train_sents(data, train_ids):
+
+    pass
+
+
+# process Switchboard
+def proc_swbd():
+    data = read_data_disk('swbd_sents100.dat')
+    conn = db_conn('swbd')
+    cur = conn.cursor()
+    # select all convIds
+    query = 'select distinct convID from entropy'
+    cur.execute(query)
+    conv_ids = [t[0] for t in cur.fetchall()]
+    # shuffle and make folds
+    random.shuffle(conv_ids)
+    fold_num = 10
+    fold_size = int(len(conv_ids)/fold_num)
+    conv_ids_folds = []
+    for i in range(0, fold_num):
+        if i < fold_num-1:
+            conv_ids_folds.append(conv_ids[i*fold_size : (i+1)*fold_size])
+        else:
+            conv_ids_folds.append(conv_ids[i*fold_size:])
+    # cross validation
+    results = []
+    for i, in range(0, fold_num):
+        test_ids = conv_ids_folds[i]
+        train_ids = []
+        for j in range(0, fold_num):
+            if j != i:
+                train_ids += conv_ids_folds[j]
+        # from sentence position 1 to 100
+        train_sents = get_train_sents(data, train_ids)
+    pass
 
 
 # main
