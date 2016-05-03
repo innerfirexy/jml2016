@@ -2,7 +2,7 @@
 # Yang Xu
 # 5/2/2016
 
-from nltk_legacy import ngram
+from nltk_legacy.ngram import NgramModel
 import MySQLdb
 import sys
 import pickle
@@ -53,9 +53,18 @@ def read_data_disk(datafilename):
     return data
 
 # get train sentences from data
-def get_train_sents(data, train_ids):
-
-    pass
+def get_train_sents(data, train_ids, sent_id):
+    """
+    train_ids: a list of convIds
+    sent_id: sentence id, from 1 to 100
+    return: a list of lists of strings
+    """
+    sents = []
+    for cid in train_ids:
+        sent = data[cid][sent_id]
+        if len(sent) > 0:
+            sents.append(sent)
+    return sents
 
 
 # process Switchboard
@@ -79,18 +88,35 @@ def proc_swbd():
             conv_ids_folds.append(conv_ids[i*fold_size:])
     # cross validation
     results = []
-    for i, in range(0, fold_num):
+    for i in range(0, fold_num):
+        print('fold {} begins'.format(i))
         test_ids = conv_ids_folds[i]
         train_ids = []
         for j in range(0, fold_num):
             if j != i:
                 train_ids += conv_ids_folds[j]
         # from sentence position 1 to 100
-        train_sents = get_train_sents(data, train_ids)
-    pass
+        for sid in range(1, 101):
+            train_sents = get_train_sents(data, train_ids, sid)
+            lm = NgramModel(3, train_sents)
+            for cid in test_ids:
+                sent = data[cid][sid]
+                if len(sent) > 0:
+                    ent = lm.entropy(sent)
+                    results.append((cid, sid, ent))
+            sys.stdout.write('\r{}/{} done'.format(sid, 100))
+            sys.stdout.flush()
+        print('fold {} done'.format(i))
+    # write results to file
+    with open('swbd_sent100_res.dat', 'w') as fw:
+        for item in results:
+            row = ', '.join(map(str, item)) + '\n'
+            fw.write(row)
+
 
 
 # main
 if __name__ == '__main__':
     # data = read_data()
     # pickle.dump(data, open('swbd_sents100.dat', 'wb'))
+    proc_swbd()
