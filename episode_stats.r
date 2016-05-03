@@ -7,7 +7,7 @@ library(data.table)
 
 # ssh yvx5085@brain.ist.psu.edu -i ~/.ssh/id_rsa -L 1234:localhost:3306
 conn = dbConnect(MySQL(), host = '127.0.0.1', user = 'yang', port = 1234, password = "05012014", dbname = 'bnc')
-sql = 'select * from entropy_DEM_full where episodeId is not null'
+sql = 'select convId, episodeId, inEpisodeId from entropy_DEM_full where episodeId is not null'
 df.bnc = dbGetQuery(conn, sql)
 dt.bnc = data.table(df.bnc)
 
@@ -28,4 +28,11 @@ mean(swbd2$N) # 11.7
 sd(swbd2$N) # 10.6
 
 # BNC
-setkey(dt.bnc, )
+setkey(dt.bnc, convId, episodeId)
+bnc1 = dt.bnc[, length(unique(episodeId)), by = convId]
+mean(bnc1$V1) # 7.1
+sd(bnc1$V1) # 10.8
+
+bnc2 = dt.bnc[, .N, by = .(convId, episodeId)]
+mean(bnc2$N) # 12.4
+sd(bnc2$N) # 8.3
