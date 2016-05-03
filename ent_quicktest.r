@@ -19,10 +19,6 @@ dt.swbd = data.table(df.swbd)
 summary(lmer(ent ~ globalID + (1|convID), dt.bnc)) # *** ~
 # by reviewing the code in ngram.py, the entropy function returns the per-word entropy of a sentence
 
-# get per-word entropy
-dt.bnc[, ent_per := ent / wordNum]
-summary(lmer(ent_per ~ globalID + (1|convID), dt.bnc)) # ***
-
 
 # distr of ent
 plot(density(dt.bnc$ent))
@@ -30,3 +26,11 @@ plot(density(dt.swbd$ent))
 
 qqnorm(log(dt.bnc$ent))
 qqnorm(log(dt.swbd$ent))
+
+
+
+#######
+# test new data
+dt.swbd.new = fread('swbd_sent100_res.dat')
+colnames(dt.swbd.new) = c('convId', 'sentenceId', 'ent')
+summary(lmer(ent ~ sentenceId + (1|convId), dt.swbd.new)) # t = 8.83
