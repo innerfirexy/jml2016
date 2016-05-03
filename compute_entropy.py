@@ -100,7 +100,9 @@ def proc_swbd():
             train_sents = get_train_sents(data, train_ids, sid)
             lm = NgramModel(3, train_sents)
             for cid in test_ids:
-                sent = data[cid][sid]
+                sent = []
+                if sid in data[cid]:
+                    sent = data[cid][sid]
                 if len(sent) > 0:
                     ent = lm.entropy(sent)
                     results.append((cid, sid, ent))
