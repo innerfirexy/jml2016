@@ -6,6 +6,8 @@ library(data.table)
 library(ggplot2)
 library(lme4)
 library(lmerTest)
+library(car) # Anova for Wald test of model
+library(MASS) # glmmPQL
 
 # load data
 df.bnc = readRDS('bnc_df_c.rds')
@@ -20,12 +22,19 @@ summary(lmer(ent ~ globalID + (1|convID), dt.bnc)) # *** ~
 # by reviewing the code in ngram.py, the entropy function returns the per-word entropy of a sentence
 
 
-# distr of ent
-plot(density(dt.bnc$ent))
-plot(density(dt.swbd$ent))
+# log ent ~ globalID
+m3 = lmer(log(ent) ~ globalID + (1|convID), dt.swbd) # beta = 3.947e-04 ***
+Anova(m3) # Type II Wald chisquare tests
+summary(m3) # t = 6.638
 
-qqnorm(log(dt.bnc$ent))
-qqnorm(log(dt.swbd$ent))
+m3_pql = glmmPQL(ent ~ globalID, ~1|convID, data = dt.swbd, family = gaussian(link = 'log')) # if logit, out of scope
+summary(m3_pql) # t = 8.7385***, beta = 4.86e-04
+
+m4 = lmer(log(ent) ~ globalID + (1|convID), dt.bnc) # beta = 1.424e-03 ***
+
+m4_pql = glmmPQL(ent ~ globalID, ~1|convID, data = dt.bnc, family = gaussian(link = 'log'))
+summary(m4_pql) # beta = 1.4041e10-3, t = 17.1686***
+
 
 
 
