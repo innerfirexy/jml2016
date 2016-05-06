@@ -12,6 +12,14 @@ dt.bnc = data.table(df.bnc)
 df.swbd = readRDS('swbd_df_c.rds')
 dt.swbd = data.table(df.swbd)
 
+# construct dt for plot
+dt.swbd.tmp = dt.swbd[, .(convID, globalID, ent, entc)]
+dt.swbd.tmp[, corpus := 'Switchboard']
+dt.bnc.tmp = dt.bnc[, .(convID, globalID, ent, entc)]
+dt.bnc.tmp[, corpus := 'BNC']
+dt.all = rbindlist(list(dt.swbd.tmp, dt.bnc.tmp))
+dt.all[, logEnt := log(ent)][, logEntc := log(entc)]
+
 
 # the function that generate qqplot with a central abline
 getqqplot <- function (vec) # argument: vector of numbers
@@ -28,14 +36,13 @@ getqqplot <- function (vec) # argument: vector of numbers
 }
 
 
-
 # entropy
-p1 = getqqplot(dt.swbd$ent)
+p1 = ggplot(dt.all, aes(sample = ent, shape = corpus, color = corpus)) +
+    stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
+    geom_abline(slope = 4, intercept = 15, lty = 2)
+pdf('ent_qq.pdf', 5, 5)
 plot(p1)
-
-p2 = getqqplot(dt.bnc$ent)
-plot(p2)
-
+dev.off()
 
 # log entropy
 p3 = getqqplot(log(dt.swbd$ent))
@@ -59,3 +66,50 @@ plot(p7)
 
 p8 = getqqplot(log(dt.bnc$entc)) # near normal
 plot(p8)
+
+
+
+### density curves
+# entropy
+d1 = ggplot(dt.all, aes(x = ent, color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('entropy')
+pdf('ent_density.pdf', 5, 5)
+plot(d1)
+dev.off()
+
+# log entropy
+d2 = ggplot(dt.all, aes(x = logEnt, color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('log entropy')
+plot(d2)
+
+# normalized entropy
+d3 = ggplot(dt.all, aes(x = entc, color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('normalized entropy')
+plot(d3)
+
+# log normalized entropy
+d4 = ggplot(dt.all, aes(x = logEntc, color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('log normalized entropy')
+plot(d4)
+
+
+### Shapiro-Wilk tests, size <= 5000
+shapiro.test(sample(dt.swbd$ent, 5000)) # W = 0.90815***, significantly different from normal distribution
+shapiro.test(sample(dt.bnc$ent, 5000)) # W = 0.90662***
+
+shapiro.test(sample(dt.all[corpus == 'Switchboard', logEnt], 5000))
+shapiro.test(sample(dt.all[corpus == 'BNC', logEnt], 5000))
+
+shapiro.test(sample(dt.all[corpus == 'Switchboard', entc], 5000))
+shapiro.test(sample(dt.all[corpus == 'BNC', entc], 5000))
+
+shapiro.test(sample(dt.all[corpus == 'Switchboard', logEntc], 5000))
+shapiro.test(sample(dt.all[corpus == 'BNC', logEntc], 5000))
+
+# demo
+# shapiro.test(rnorm(100, mean = 5, sd = 3))
+# shapiro.test(runif(100, min = 2, max = 4))
