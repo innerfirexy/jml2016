@@ -13,13 +13,13 @@ def db_conn(db_name):
     # db init: ssh yvx5085@brain.ist.psu.edu -i ~/.ssh/id_rsa -L 1234:localhost:3306
     conn = MySQLdb.connect(host = "127.0.0.1",
                     user = "yang",
-                    port = 1234,
+                    port = 3306,
                     passwd = "05012014",
                     db = db_name)
     return conn
 
-# read data from db
-def read_data():
+# read data from swbd db
+def read_data_swbd():
     """
     read sentences from db
     return: a dict instance, whose keys are convIds and values are dict instances
@@ -46,6 +46,32 @@ def read_data():
         sys.stdout.flush()
     print('\nall data read')
     return data
+
+# read data from the shuffled Switchboard
+def read_data_swbd_shuffle():
+    conn = db_conn('swbd')
+    cur = conn.cursor()
+    # select convIds
+    query = 'select distinct convId from entropy_shuffle'
+    cur.execute(query)
+    conv_ids = [t[0] for t in cur.fetchall()]
+    # initialize the data to be returned
+    data = {cid : {} for cid in conv_ids}
+    # for each cid in conv_ids, read the sentences from 1 to 100 and store to data
+    print('reading data')
+    for i, cid in enumerate(conv_ids):
+        query = 'select sentenceId, tokens from entropy_shuffle where convId = %s and sentenceId <= 100'
+        cur.execute(query, [cid])
+        res = cur.fetchall()
+        for r in res:
+            sid, stext = r
+            data[cid][sid] = stext.strip().split()
+        sys.stdout.write('\r{}/{} data read'.format(i+1, len(conv_ids)))
+        sys.stdout.flush()
+    print('\nall data read')
+    return data
+
+#
 
 # read data from disk
 def read_data_disk(datafilename):
@@ -117,10 +143,62 @@ def proc_swbd():
             row = ', '.join(map(str, item)) + '\n'
             fw.write(row)
 
+# process shufled Switchboard
+def proc_swbd_shuffle():
+    data = read_data_disk('swbd_shuffle_sents100.dat')
+    conn = db_conn('swbd')
+    cur = conn.cursor()
+    # select all convIds
+    query = 'select distinct convId from entropy_shuffle'
+    cur.execute(query)
+    conv_ids = [t[0] for t in cur.fetchall()]
+    # shuffle and make folds
+    random.shuffle(conv_ids)
+    fold_num = 10
+    fold_size = int(len(conv_ids)/fold_num)
+    conv_ids_folds = []
+    for i in range(0, fold_num):
+        if i < fold_num-1:
+            conv_ids_folds.append(conv_ids[i*fold_size : (i+1)*fold_size])
+        else:
+            conv_ids_folds.append(conv_ids[i*fold_size:])
+    # cross validation
+    results = []
+    for i in range(0, fold_num):
+        print('fold {} begins'.format(i))
+        test_ids = conv_ids_folds[i]
+        train_ids = []
+        for j in range(0, fold_num):
+            if j != i:
+                train_ids += conv_ids_folds[j]
+        # from sentence position 1 to 100
+        for sid in range(1, 101):
+            train_sents = get_train_sents(data, train_ids, sid)
+            lm = NgramModel(3, train_sents)
+            for cid in test_ids:
+                sent = []
+                if sid in data[cid]:
+                    sent = data[cid][sid]
+                if len(sent) > 0:
+                    ent = lm.entropy(sent)
+                    results.append((cid, sid, ent))
+            sys.stdout.write('\r{}/{} done'.format(sid, 100))
+            sys.stdout.flush()
+        print('fold {} done'.format(i))
+    # write results to file
+    with open('swbd_shuffle_sents100_res.dat', 'w') as fw:
+        for item in results:
+            row = ', '.join(map(str, item)) + '\n'
+            fw.write(row)
+    pass
 
 
 # main
 if __name__ == '__main__':
-    # data = read_data()
+    # data = read_data_swbd()
     # pickle.dump(data, open('swbd_sents100.dat', 'wb'))
-    proc_swbd()
+    # proc_swbd()
+
+    # data = read_data_swbd_shuffle()
+    # pickle.dump(data, open('swbd_shuffle_sents100.dat', 'wb'))
+    proc_swbd_shuffle()
