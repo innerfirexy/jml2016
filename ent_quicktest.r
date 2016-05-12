@@ -36,6 +36,9 @@ m4_pql = glmmPQL(ent ~ globalID, ~1|convID, data = dt.bnc, family = gaussian(lin
 summary(m4_pql) # beta = 1.4041e10-3, t = 17.1686***
 
 
+m = glmer(ent ~ globalID + (1|convID), dt.swbd, family = binomial)
+
+
 
 
 #######

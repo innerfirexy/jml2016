@@ -46,7 +46,7 @@ dev.off()
 
 # log entropy
 p3 = getqqplot(log(dt.swbd$ent))
-plot(p3)
+    plot(p3)
 
 p4 = getqqplot(log(dt.bnc$ent))
 plot(p4)
@@ -113,3 +113,9 @@ shapiro.test(sample(dt.all[corpus == 'BNC', logEntc], 5000))
 # demo
 # shapiro.test(rnorm(100, mean = 5, sd = 3))
 # shapiro.test(runif(100, min = 2, max = 4))
+
+
+# perplexity
+dt.swbd[, ppl := 2^ent]
+p = getqqplot(dt.swbd$ppl)
+plot(p)
