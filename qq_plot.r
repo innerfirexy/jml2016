@@ -45,27 +45,32 @@ plot(p1)
 dev.off()
 
 # log entropy
-p3 = getqqplot(log(dt.swbd$ent))
-    plot(p3)
-
-p4 = getqqplot(log(dt.bnc$ent))
-plot(p4)
+p2 = ggplot(dt.all, aes(sample = logEnt, shape = corpus, color = corpus)) +
+    stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
+    geom_abline(slope = .4, intercept = 2, lty = 2)
+pdf('log_ent_qq.pdf', 5, 5)
+plot(p2)
+dev.off()
 
 
 # normalized entropy
-p5 = getqqplot(dt.swbd$entc) # not normal
+# p5 = getqqplot(dt.swbd$entc) # not normal
+p5 = ggplot(dt.all, aes(sample = entc, shape = corpus, color = corpus)) +
+    stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
+    geom_abline(slope = .8, intercept = 2, lty = 2)
+pdf('ne_qq.pdf', 5, 5)
 plot(p5)
-
-p6 = getqqplot(dt.bnc$entc) # not normal
-plot(p6)
+dev.off()
 
 
 # log normalized entropy
-p7 = getqqplot(log(dt.swbd$entc)) # near normal
-plot(p7)
+p6 = ggplot(dt.all, aes(sample = logEntc, shape = corpus, color = corpus)) +
+    stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
+    geom_abline(slope = .4, intercept = 0, lty = 2)
+pdf('log_ne_qq.pdf', 5, 5)
+plot(p6)
+dev.off()
 
-p8 = getqqplot(log(dt.bnc$entc)) # near normal
-plot(p8)
 
 
 
@@ -80,21 +85,27 @@ dev.off()
 
 # log entropy
 d2 = ggplot(dt.all, aes(x = logEnt, color = corpus, lty = corpus)) +
-    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.2, .8)) +
     xlab('log entropy')
+pdf('log_ent_density.pdf', 5, 5)
 plot(d2)
+dev.off()
 
 # normalized entropy
 d3 = ggplot(dt.all, aes(x = entc, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
     xlab('normalized entropy')
+pdf('ne_density.pdf', 5, 5)
 plot(d3)
+dev.off()
 
 # log normalized entropy
 d4 = ggplot(dt.all, aes(x = logEntc, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
     xlab('log normalized entropy')
+pdf('log_ne_density.pdf', 5, 5)
 plot(d4)
+dev.off()
 
 
 ### Shapiro-Wilk tests, size <= 5000
@@ -119,3 +130,11 @@ shapiro.test(sample(dt.all[corpus == 'BNC', logEntc], 5000))
 dt.swbd[, ppl := 2^ent]
 p = getqqplot(dt.swbd$ppl)
 plot(p)
+
+
+## density of sentence length (wordNum)
+plot(density(dt.swbd$wordNum)) # one peak
+plot(density(log(dt.swbd$wordNum))) # multiple peaks
+
+plot(density(dt.bnc$wordNum)) # one peak
+plot(density(log(dt.bnc$wordNum))) # multiple peaks
