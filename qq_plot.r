@@ -13,9 +13,9 @@ df.swbd = readRDS('swbd_df_c.rds')
 dt.swbd = data.table(df.swbd)
 
 # construct dt for plot
-dt.swbd.tmp = dt.swbd[, .(convID, globalID, ent, entc)]
+dt.swbd.tmp = dt.swbd[, .(convID, globalID, ent, entc, wordNum)]
 dt.swbd.tmp[, corpus := 'Switchboard']
-dt.bnc.tmp = dt.bnc[, .(convID, globalID, ent, entc)]
+dt.bnc.tmp = dt.bnc[, .(convID, globalID, ent, entc, wordNum)]
 dt.bnc.tmp[, corpus := 'BNC']
 dt.all = rbindlist(list(dt.swbd.tmp, dt.bnc.tmp))
 dt.all[, logEnt := log(ent)][, logEntc := log(entc)]
@@ -36,6 +36,7 @@ getqqplot <- function (vec) # argument: vector of numbers
 }
 
 
+### QQ plots
 # entropy
 p1 = ggplot(dt.all, aes(sample = ent, shape = corpus, color = corpus)) +
     stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
@@ -52,7 +53,6 @@ pdf('log_ent_qq.pdf', 5, 5)
 plot(p2)
 dev.off()
 
-
 # normalized entropy
 # p5 = getqqplot(dt.swbd$entc) # not normal
 p5 = ggplot(dt.all, aes(sample = entc, shape = corpus, color = corpus)) +
@@ -61,7 +61,6 @@ p5 = ggplot(dt.all, aes(sample = entc, shape = corpus, color = corpus)) +
 pdf('ne_qq.pdf', 5, 5)
 plot(p5)
 dev.off()
-
 
 # log normalized entropy
 p6 = ggplot(dt.all, aes(sample = logEntc, shape = corpus, color = corpus)) +
@@ -86,7 +85,7 @@ dev.off()
 # log entropy
 d2 = ggplot(dt.all, aes(x = logEnt, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    xlab('log entropy')
+    xlab('logarithm entropy')
 pdf('log_ent_density.pdf', 5, 5)
 plot(d2)
 dev.off()
@@ -102,10 +101,25 @@ dev.off()
 # log normalized entropy
 d4 = ggplot(dt.all, aes(x = logEntc, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('log normalized entropy')
+    xlab('logarithm normalized entropy')
 pdf('log_ne_density.pdf', 5, 5)
 plot(d4)
 dev.off()
+
+
+## distr of sentence length
+d_sl = ggplot(dt.all, aes(x = wordNum, color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('sentence length')
+pdf('sentLen_density.pdf', 5, 5)
+plot(d_sl)
+dev.off()
+
+d_sl_log = ggplot(dt.all, aes(x = log(wordNum), color = corpus, lty = corpus)) +
+    geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
+    xlab('logarithm of sentence length')
+plot(d_sl_log)
+
 
 
 ### Shapiro-Wilk tests, size <= 5000
@@ -115,8 +129,8 @@ shapiro.test(sample(dt.bnc$ent, 5000)) # W = 0.90662***
 shapiro.test(sample(dt.all[corpus == 'Switchboard', logEnt], 5000))
 shapiro.test(sample(dt.all[corpus == 'BNC', logEnt], 5000))
 
-shapiro.test(sample(dt.all[corpus == 'Switchboard', entc], 5000))
-shapiro.test(sample(dt.all[corpus == 'BNC', entc], 5000))
+shapiro.test(sample(dt.all[corpus == 'Switchboard', entc], 5000)) # W = 0.59915***
+shapiro.test(sample(dt.all[corpus == 'BNC', entc], 5000)) # W = 0.8225***
 
 shapiro.test(sample(dt.all[corpus == 'Switchboard', logEntc], 5000))
 shapiro.test(sample(dt.all[corpus == 'BNC', logEntc], 5000))
