@@ -40,7 +40,8 @@ getqqplot <- function (vec) # argument: vector of numbers
 # entropy
 p1 = ggplot(dt.all, aes(sample = ent, shape = corpus, color = corpus)) +
     stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    geom_abline(slope = 4, intercept = 15, lty = 2)
+    geom_abline(slope = 4, intercept = 15, lty = 2) +
+    labs(x='Theoretical', y='Sample')
 pdf('ent_qq.pdf', 5, 5)
 plot(p1)
 dev.off()
@@ -48,7 +49,8 @@ dev.off()
 # log entropy
 p2 = ggplot(dt.all, aes(sample = logEnt, shape = corpus, color = corpus)) +
     stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    geom_abline(slope = .4, intercept = 2, lty = 2)
+    geom_abline(slope = .4, intercept = 2, lty = 2) +
+    labs(x='Theoretical', y='Sample')
 pdf('log_ent_qq.pdf', 5, 5)
 plot(p2)
 dev.off()
@@ -57,7 +59,8 @@ dev.off()
 # p5 = getqqplot(dt.swbd$entc) # not normal
 p5 = ggplot(dt.all, aes(sample = entc, shape = corpus, color = corpus)) +
     stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    geom_abline(slope = .8, intercept = 2, lty = 2)
+    geom_abline(slope = .8, intercept = 2, lty = 2) +
+    labs(x='Theoretical', y='Sample')
 pdf('ne_qq.pdf', 5, 5)
 plot(p5)
 dev.off()
@@ -65,7 +68,8 @@ dev.off()
 # log normalized entropy
 p6 = ggplot(dt.all, aes(sample = logEntc, shape = corpus, color = corpus)) +
     stat_qq() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    geom_abline(slope = .4, intercept = 0, lty = 2)
+    geom_abline(slope = .4, intercept = 0, lty = 2) +
+    labs(x='Theoretical', y='Sample')
 pdf('log_ne_qq.pdf', 5, 5)
 plot(p6)
 dev.off()
@@ -77,7 +81,7 @@ dev.off()
 # entropy
 d1 = ggplot(dt.all, aes(x = ent, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('entropy')
+    xlab('Sentence information')
 pdf('ent_density.pdf', 5, 5)
 plot(d1)
 dev.off()
@@ -85,7 +89,7 @@ dev.off()
 # log entropy
 d2 = ggplot(dt.all, aes(x = logEnt, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.2, .8)) +
-    xlab('logarithm entropy')
+    xlab('Log-transformed sentence information')
 pdf('log_ent_density.pdf', 5, 5)
 plot(d2)
 dev.off()
@@ -93,7 +97,7 @@ dev.off()
 # normalized entropy
 d3 = ggplot(dt.all, aes(x = entc, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('normalized entropy')
+    xlab('Normalized sentence information')
 pdf('ne_density.pdf', 5, 5)
 plot(d3)
 dev.off()
@@ -101,7 +105,7 @@ dev.off()
 # log normalized entropy
 d4 = ggplot(dt.all, aes(x = logEntc, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('logarithm normalized entropy')
+    xlab('Log-transformed normalized sentence information')
 pdf('log_ne_density.pdf', 5, 5)
 plot(d4)
 dev.off()
@@ -110,14 +114,14 @@ dev.off()
 ## distr of sentence length
 d_sl = ggplot(dt.all, aes(x = wordNum, color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('sentence length')
+    xlab('Sentence length')
 pdf('sentLen_density.pdf', 5, 5)
 plot(d_sl)
 dev.off()
 
 d_sl_log = ggplot(dt.all, aes(x = log(wordNum), color = corpus, lty = corpus)) +
     geom_density() + theme_bw() + theme(legend.position = c(.8, .8)) +
-    xlab('logarithm of sentence length')
+    xlab('Log-transformed sentence length')
 plot(d_sl_log)
 
 
